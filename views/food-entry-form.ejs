@@ -13,34 +13,29 @@
 </div>
 <div class="mt-3">
     <label>Meal:</label>
-    <input type="radio" name="meal" value="breakfast" <%=foodEntry.meal==="breakfast" ? "checked" : "" %>
-    />
-    <label>Breakfast</label>
+    <% for (let m of meals) {  %>
+        <input type="radio" name="meal_id" value="<%= m.id %>" <%=foodEntry.meal_id===m.id
+        ? "checked" : "" %>
+        />
+        <label><%= m.name %></label>
+    <% } %>
 
-    <input type="radio" name="meal" value="lunch" <%=foodEntry.meal==="lunch" ? "checked" : "" %>
-    />
 
-    <label>Lunch</label>
 
-    <input type="radio" name="meal" value="dinner" <%=foodEntry.meal==="dinner" ? "checked" : "" %>
-    />
-    <label>Dinner</label>
-
-    <input type="radio" name="meal" value="snack" <%=foodEntry.meal==="snack" ? "checked" : "" %>
-    />
-    <label>Snack</label>
 </div>
 <div class="mt-3">
     <label>Tags</label>
-    <input type="checkbox" name="tags[]" value="vegan" <%= foodEntry.tags?.includes("vegan") ? "checked" : "" %> />
+    <input type="checkbox" name="tags[]" value="vegan" <%=foodEntry.tags?.includes("vegan") ? "checked" : "" %> />
     <label>Vegan</label>
-    <input type="checkbox" name="tags[]" value="vegetarian" <%= foodEntry.tags?.includes("vegetarian") ? "checked" : "" %> />
+    <input type="checkbox" name="tags[]" value="vegetarian" <%=foodEntry.tags?.includes("vegetarian") ? "checked" : ""
+        %> />
     <label>Vegeterian</label>
-    <input type="checkbox" name="tags[]" value="gluten-free" <%= foodEntry.tags?.includes("gluten-free") ? "checked" : "" %>/>
+    <input type="checkbox" name="tags[]" value="gluten-free" <%=foodEntry.tags?.includes("gluten-free") ? "checked" : ""
+        %>/>
     <label>Gluten Free</label>
-    <input type="checkbox" name="tags[]" value="low-carb" <%= foodEntry.tags?.includes("low-carb") ? "checked" : "" %> />
+    <input type="checkbox" name="tags[]" value="low-carb" <%=foodEntry.tags?.includes("low-carb") ? "checked" : "" %> />
     <label>Low Carb</label>
-    <input type="checkbox" name="tags[]" value="low-fat" <%= foodEntry.tags?.includes("low-fat") ? "checked" : "" %>  />
+    <input type="checkbox" name="tags[]" value="low-fat" <%=foodEntry.tags?.includes("low-fat") ? "checked" : "" %> />
     <label>Low Carb</label>
 </div>
 <div class="mt-3">
@@ -48,9 +43,9 @@
     <input type="number" value="<%= foodEntry.servingSize %>" class="form-control" name="servingSize" />
     <label>Unit</label>
     <select name="unit" class="form-control">
-        <option value="serving" <%= foodEntry.unit === "serving" ? "selected" : "" %> >Serving</option>
-        <option value="grams" <%= foodEntry.unit === "grams" ? "selected" : "" %>>Grams</option>
-        <option value="ounce" <%= foodEntry.unit === "ounce" ? "selected" : "" %>>Ounce</option>
-        <option value="pound" <%= foodEntry.unit === "pound" ? "selected" : "" %>>Pound</option>
+        <option value="serving" <%=foodEntry.unit==="serving" ? "selected" : "" %> >Serving</option>
+        <option value="grams" <%=foodEntry.unit==="grams" ? "selected" : "" %>>Grams</option>
+        <option value="ounce" <%=foodEntry.unit==="ounce" ? "selected" : "" %>>Ounce</option>
+        <option value="pound" <%=foodEntry.unit==="pound" ? "selected" : "" %>>Pound</option>
     </select>
 </div>

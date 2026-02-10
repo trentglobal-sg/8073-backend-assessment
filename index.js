@@ -32,14 +32,18 @@ app.get('/test', async function (req, res) {
 });
 
 app.get('/', async function (req, res) {
-  const sql = `SELECT * FROM food_entries`;
+  const sql = `SELECT * FROM food_entries JOIN meals ON food_entries.meal_id = meals.id`;
   // dbConnection.execute will return with an array of two elements:
   // index 0: row data (we want this)
   // index 1: meta data (we don't want)
   // we can use array destructuring to assign elements from an array
   // into a variable by the order of the variable in the array 
   // on the left hand size
-  const [rows] = await dbConnection.execute(sql);
+  const [rows] = await dbConnection.execute({
+    sql,
+    nestTables: true
+  });
+  console.log(rows);
 
   res.render("index", {
     "foodEntries": rows
@@ -49,16 +53,19 @@ app.get('/', async function (req, res) {
 
 
 app.get('/food-entry/create', async function (req, res) {
-  res.render('create-food-entry');
+  const [meals] = await dbConnection.execute("SELECT * FROM meals");
+  res.render('create-food-entry', {
+    meals
+  });
 })
 
 app.post('/food-entry/create', async function(req,res){
   console.log(req.body);
  // create a prepared query, aka parameterized query
- const sql = `INSERT INTO food_entries (dateTime, foodName, calories, meal, tags, servingSize, unit)
+ const sql = `INSERT INTO food_entries (dateTime, foodName, calories, meal_id, tags, servingSize, unit)
             VALUES (?, ?, ?, ?, ?, ?, ?);`
  const bindings = [req.body.dateTime, req.body.foodName, req.body.calories, 
-  req.body.meal, JSON.stringify(req.body.tags), req.body.servingSize, req.body.unit];
+  req.body.meal_id, JSON.stringify(req.body.tags), req.body.servingSize, req.body.unit];
  console.log(bindings);
  const results = await dbConnection.execute(sql, bindings);
  res.redirect('/');

@@ -28,24 +28,24 @@
                 <% for (let foodEntry of foodEntries) { %>
                     <tr>
                         <td>
-                            <%= foodEntry.dateTime.toLocaleDateString() %>
-                            <%= foodEntry.dateTime.toLocaleTimeString() %>
+                            <%= foodEntry.food_entries.dateTime.toLocaleDateString() %>
+                            <%= foodEntry.food_entries.dateTime.toLocaleTimeString() %>
                         </td>
                         <td>
-                            <%= foodEntry.foodName %>
+                            <%= foodEntry.food_entries.foodName %>
                         </td>
                         <td>
-                            <%= foodEntry.calories %>
+                            <%= foodEntry.food_entries.calories %>
                         </td>
                         <td>
-                            <%= foodEntry.meal %>
+                            <%= foodEntry.meals.name %>
                         </td>
                         <td>
-                            <%= JSON.parse(foodEntry.tags) %>
+                            <%= JSON.parse(foodEntry.food_entries.tags) %>
                         </td>
                         <td>
-                            <a class="btn btn-success btn-sm" href="food-entry/<%= foodEntry.id %>/edit">Edit</a>
-                            <a class="btn btn-danger btn-sm" href="food-entry/<%= foodEntry.id %>/delete">Delete</a>
+                            <a class="btn btn-success btn-sm" href="food-entry/<%= foodEntry.food_entries.id %>/edit">Edit</a>
+                            <a class="btn btn-danger btn-sm" href="food-entry/<%= foodEntry.food_entries.id %>/delete">Delete</a>
                         </td>
                     </tr>
                     <% } %>
