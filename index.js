@@ -124,7 +124,7 @@ app.get('/food-entry/:foodId/edit', async function (req, res) {
   const [tags] = await dbConnection.execute("SELECT * FROM tags");
   const [meals] = await dbConnection.execute("SELECT * FROM meals");
   const [foodEntryTags] = await dbConnection.execute("SELECT * FROM food_entries_tags WHERE food_entry_id = ?", [foodId])
-  const relatedTags = foodEntryTags.map(function(tagEntry){
+  const relatedTags = foodEntryTags.map(function (tagEntry) {
     return tagEntry.tag_id;
   })
 
@@ -134,28 +134,48 @@ app.get('/food-entry/:foodId/edit', async function (req, res) {
 })
 
 app.post('/food-entry/:foodId/edit', async function (req, res) {
-  const sql = `UPDATE food_entries SET dateTime = ?,
+
+
+  const connection = await dbConnection.getConnection();
+  try {
+    await connection.beginTransaction();
+    const sql = `UPDATE food_entries SET dateTime = ?,
                         foodName=?,
                         calories= ?,
                         meal_id=?,
-                        tags=?,
                         servingSize= ?,
                         unit=?
                     WHERE id=?`
 
-  const bindings = [
-    req.body.dateTime,
-    req.body.foodName,
-    req.body.calories,
-    req.body.meal_id,
-    JSON.stringify(req.body.tags),
-    req.body.servingSize,
-    req.body.unit,
-    req.params.foodId
-  ];
+    const bindings = [
+      req.body.dateTime,
+      req.body.foodName,
+      req.body.calories,
+      req.body.meal_id,
+      req.body.servingSize,
+      req.body.unit,
+      req.params.foodId
+    ];
 
-  await dbConnection.execute(sql, bindings);
-  res.redirect('/');
+    await connection.execute(sql, bindings);
+
+    // delete all the existing tags for this food entries
+    await connection.execute("DELETE FROM food_entries_tags WHERE food_entry_id = ?", [req.params.foodId]);
+
+    // re-add all the tags from the form
+    for (let tag of req.body.tags) {
+      const sql = "INSERT INTO food_entries_tags (food_entry_id, tag_id) VALUES (?, ?)";
+      await connection.execute(sql, [req.params.foodId, tag])
+    }
+
+    res.redirect('/');
+    await connection.commit();
+  } catch (e) {
+    await connection.rollback();
+  } finally {
+    connection.release();
+  }
+
 
 })
 
