@@ -14,7 +14,7 @@
         <h1>Edit Food Entry</h1>
         <form method="POST">
             <%- include('food-entry-form', {
-                foodEntry
+                foodEntry, meals, tags, relatedTags
             }) %>
             <input type="submit" value="Edit" class="btn btn-primary mt-3" />
         </form>

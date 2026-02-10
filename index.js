@@ -54,63 +54,90 @@ app.get('/', async function (req, res) {
 
 app.get('/food-entry/create', async function (req, res) {
   const [meals] = await dbConnection.execute("SELECT * FROM meals");
+  const [tags] = await dbConnection.execute("SELECT * FROM tags");
   res.render('create-food-entry', {
-    meals
+    meals,
+    tags
   });
 })
 
-app.post('/food-entry/create', async function(req,res){
-  console.log(req.body);
- // create a prepared query, aka parameterized query
- const sql = `INSERT INTO food_entries (dateTime, foodName, calories, meal_id, tags, servingSize, unit)
-            VALUES (?, ?, ?, ?, ?, ?, ?);`
- const bindings = [req.body.dateTime, req.body.foodName, req.body.calories, 
-  req.body.meal_id, JSON.stringify(req.body.tags), req.body.servingSize, req.body.unit];
- console.log(bindings);
- const results = await dbConnection.execute(sql, bindings);
- res.redirect('/');
+app.post('/food-entry/create', async function (req, res) {
+
+
+  const connection = await dbConnection.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // create a prepared query, aka parameterized query
+    const sql = `INSERT INTO food_entries (dateTime, foodName, calories, meal_id, servingSize, unit)
+            VALUES (?, ?, ?, ?, ?, ?);`
+    const bindings = [req.body.dateTime, req.body.foodName, req.body.calories,
+    req.body.meal_id, req.body.servingSize, req.body.unit];
+
+    // create the new food entry
+    const [results] = await connection.execute(sql, bindings);
+    const newFoodEntryID = results.insertId;
+
+    for (let tag of req.body.tags) {
+      const sql = "INSERT INTO food_entries_tags (food_entry_id, tag_id) VALUES (?, ?)";
+      await connection.execute(sql, [newFoodEntryID, tag])
+    }
+
+    res.redirect('/');
+
+    await connection.commit(); // make all changes done to the database permanent
+  } catch (e) {
+    await connection.rollback();
+  } finally {
+    connection.release(); // release the connection so that it goes back to the pool
+  }
 })
 
-app.get('/food-entry/:foodId/delete/', async function(req,res){
-    const foodId = req.params.foodId;
-    // dbConnection.execute with SELECT * will always return an array of rows
-    // even if there is one result. Then in this case, the row we want is in index 0
-    const [rows] = await dbConnection.execute("SELECT * FROM food_entries WHERE id = ?", [foodId]);
-    const foodEntry = rows[0];
-    res.render('confirm-delete-food', {
-      foodEntry
-    })
+app.get('/food-entry/:foodId/delete/', async function (req, res) {
+  const foodId = req.params.foodId;
+  // dbConnection.execute with SELECT * will always return an array of rows
+  // even if there is one result. Then in this case, the row we want is in index 0
+  const [rows] = await dbConnection.execute("SELECT * FROM food_entries WHERE id = ?", [foodId]);
+  const foodEntry = rows[0];
+  res.render('confirm-delete-food', {
+    foodEntry
+  })
 });
 
-app.post("/food-entry/:foodId/delete/", async function(req,res){
+app.post("/food-entry/:foodId/delete/", async function (req, res) {
   const sql = "DELETE FROM food_entries WHERE id = ?";
   const foodId = req.params.foodId;
   await dbConnection.execute(sql, [foodId]);
   res.redirect('/');
 })
 
-app.get('/food-entry/:foodId/edit', async function(req,res){
+app.get('/food-entry/:foodId/edit', async function (req, res) {
   const foodId = req.params.foodId;
 
   const [rows] = await dbConnection.execute(
     "SELECT * FROM food_entries WHERE id = ?",
     [foodId]
   );
-  
+
   const foodEntry = rows[0];
-  foodEntry.tags = JSON.parse(foodEntry.tags);
-  console.log(foodEntry.tags);
+
+  const [tags] = await dbConnection.execute("SELECT * FROM tags");
+  const [meals] = await dbConnection.execute("SELECT * FROM meals");
+  const [foodEntryTags] = await dbConnection.execute("SELECT * FROM food_entries_tags WHERE food_entry_id = ?", [foodId])
+  const relatedTags = foodEntryTags.map(function(tagEntry){
+    return tagEntry.tag_id;
+  })
 
   res.render('edit-food-entry', {
-    foodEntry
+    foodEntry, meals, tags, relatedTags
   })
 })
 
-app.post('/food-entry/:foodId/edit', async function(req,res){
+app.post('/food-entry/:foodId/edit', async function (req, res) {
   const sql = `UPDATE food_entries SET dateTime = ?,
                         foodName=?,
                         calories= ?,
-                        meal=?,
+                        meal_id=?,
                         tags=?,
                         servingSize= ?,
                         unit=?
@@ -120,7 +147,7 @@ app.post('/food-entry/:foodId/edit', async function(req,res){
     req.body.dateTime,
     req.body.foodName,
     req.body.calories,
-    req.body.meal,
+    req.body.meal_id,
     JSON.stringify(req.body.tags),
     req.body.servingSize,
     req.body.unit,
