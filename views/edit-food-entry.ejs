@@ -11,14 +11,12 @@
 
 <body>
     <div class="container">
-        <h1>Create New Food Entry</h1>
+        <h1>Edit Food Entry</h1>
         <form method="POST">
-             <%- include("food-entry-form", {
-                foodEntry: {
-
-                }
-             }) %>
-            <input type="submit" value="Create New" class="btn btn-primary mt-3" />
+            <%- include('food-entry-form', {
+                foodEntry
+            }) %>
+            <input type="submit" value="Edit" class="btn btn-primary mt-3" />
         </form>
 
     </div>

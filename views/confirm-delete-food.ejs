@@ -11,18 +11,17 @@
 
 <body>
     <div class="container">
-        <h1>Create New Food Entry</h1>
+        <h1>Deleting Food Record</h1>
         <form method="POST">
-             <%- include("food-entry-form", {
-                foodEntry: {
-
-                }
-             }) %>
-            <input type="submit" value="Create New" class="btn btn-primary mt-3" />
+            <div class="alert alert-danger">Are you sure you want to delete <%= foodEntry.foodName %> recorded
+                    on <%= foodEntry.dateTime %>
+            </div>
+            <div>
+                <input type="submit" value="Confirm Delete" class="btn btn-danger"/>
+                <a href="/" class="btn btn-success">Cancel</a>
+            </div>
         </form>
-
     </div>
-
 </body>
 
 </html>

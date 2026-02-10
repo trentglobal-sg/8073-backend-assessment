@@ -64,6 +64,68 @@ app.post('/food-entry/create', async function(req,res){
  res.redirect('/');
 })
 
+app.get('/food-entry/:foodId/delete/', async function(req,res){
+    const foodId = req.params.foodId;
+    // dbConnection.execute with SELECT * will always return an array of rows
+    // even if there is one result. Then in this case, the row we want is in index 0
+    const [rows] = await dbConnection.execute("SELECT * FROM food_entries WHERE id = ?", [foodId]);
+    const foodEntry = rows[0];
+    res.render('confirm-delete-food', {
+      foodEntry
+    })
+});
+
+app.post("/food-entry/:foodId/delete/", async function(req,res){
+  const sql = "DELETE FROM food_entries WHERE id = ?";
+  const foodId = req.params.foodId;
+  await dbConnection.execute(sql, [foodId]);
+  res.redirect('/');
+})
+
+app.get('/food-entry/:foodId/edit', async function(req,res){
+  const foodId = req.params.foodId;
+
+  const [rows] = await dbConnection.execute(
+    "SELECT * FROM food_entries WHERE id = ?",
+    [foodId]
+  );
+  
+  const foodEntry = rows[0];
+  foodEntry.tags = JSON.parse(foodEntry.tags);
+  console.log(foodEntry.tags);
+
+  res.render('edit-food-entry', {
+    foodEntry
+  })
+})
+
+app.post('/food-entry/:foodId/edit', async function(req,res){
+  const sql = `UPDATE food_entries SET dateTime = ?,
+                        foodName=?,
+                        calories= ?,
+                        meal=?,
+                        tags=?,
+                        servingSize= ?,
+                        unit=?
+                    WHERE id=?`
+
+  const bindings = [
+    req.body.dateTime,
+    req.body.foodName,
+    req.body.calories,
+    req.body.meal,
+    JSON.stringify(req.body.tags),
+    req.body.servingSize,
+    req.body.unit,
+    req.params.foodId
+  ];
+
+  await dbConnection.execute(sql, bindings);
+  res.redirect('/');
+
+})
+
+
 app.listen(3000, function () {
   console.log("Server started")
 })

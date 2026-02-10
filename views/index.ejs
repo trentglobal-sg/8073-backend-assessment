@@ -10,32 +10,50 @@
 </head>
 
 <body>
-    <h1>Food Entries Listing</h1>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>When</th>
-                <th>Food Name</th>
-                <th>Calories</th>
-                <th>Meal</th>
-                <th>Tags</th>
-            </tr>
-        </thead>
-        <tbody>
-            <% for (let foodEntry of foodEntries) { %>
+    <div class="container">
+        <h1>Food Entries Listing</h1>
+        <a href="/food-entry/create" class="btn btn-primary btn-sm">Create</a>
+        <table class="table">
+            <thead>
                 <tr>
-                    <td><%= foodEntry.dateTime %></td>
-                    <td><%= foodEntry.foodName %></td>
-                    <td><%= foodEntry.calories %></td>
-                    <td><%= foodEntry.meal %></td>
-                    <td>
-                        <%= JSON.parse(foodEntry.tags) %>
-                    </td>
+                    <th>When</th>
+                    <th>Food Name</th>
+                    <th>Calories</th>
+                    <th>Meal</th>
+                    <th>Tags</th>
+                    <th></th>
                 </tr>
-            <% } %>
+            </thead>
+            <tbody>
+                <% for (let foodEntry of foodEntries) { %>
+                    <tr>
+                        <td>
+                            <%= foodEntry.dateTime.toLocaleDateString() %>
+                            <%= foodEntry.dateTime.toLocaleTimeString() %>
+                        </td>
+                        <td>
+                            <%= foodEntry.foodName %>
+                        </td>
+                        <td>
+                            <%= foodEntry.calories %>
+                        </td>
+                        <td>
+                            <%= foodEntry.meal %>
+                        </td>
+                        <td>
+                            <%= JSON.parse(foodEntry.tags) %>
+                        </td>
+                        <td>
+                            <a class="btn btn-success btn-sm" href="food-entry/<%= foodEntry.id %>/edit">Edit</a>
+                            <a class="btn btn-danger btn-sm" href="food-entry/<%= foodEntry.id %>/delete">Delete</a>
+                        </td>
+                    </tr>
+                    <% } %>
 
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+    </div>
+
 
 
 
