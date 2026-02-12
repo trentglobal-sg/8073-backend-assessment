@@ -32,17 +32,21 @@ app.get('/test', async function (req, res) {
 });
 
 app.get('/', async function (req, res) {
-  const sql = `SELECT * FROM food_entries JOIN meals ON food_entries.meal_id = meals.id`;
+  const sql = `SELECT food_entries.id, dateTime, foodName, calories, meals.name as 'meal', group_concat(tags.name) as 'selected_tags'  FROM food_entries 
+                        JOIN meals ON food_entries.meal_id = meals.id
+                        JOIN food_entries_tags ON food_entries_tags.food_entry_id = food_entries.id
+                        JOIN tags ON food_entries_tags.tag_id = tags.id
+                GROUP BY food_entries.id, dateTime, foodName, calories, meal
+              `;
+  
+  
   // dbConnection.execute will return with an array of two elements:
   // index 0: row data (we want this)
   // index 1: meta data (we don't want)
   // we can use array destructuring to assign elements from an array
   // into a variable by the order of the variable in the array 
   // on the left hand size
-  const [rows] = await dbConnection.execute({
-    sql,
-    nestTables: true
-  });
+  const [rows] = await dbConnection.execute(sql);
   console.log(rows);
 
   res.render("index", {
