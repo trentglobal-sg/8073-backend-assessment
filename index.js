@@ -32,6 +32,10 @@ app.get('/test', async function (req, res) {
 });
 
 app.get('/', async function (req, res) {
+
+  const [tags] = await dbConnection.execute("SELECT * FROM tags");
+
+  // query builder pattern
   const sql = `SELECT food_entries.id, dateTime, foodName, calories, meals.name AS 'meal', GROUP_CONCAT(tags.name) AS 'selectedTags' 
                 FROM food_entries 
                 LEFT JOIN meals ON food_entries.meal_id = meals.id
@@ -39,23 +43,63 @@ app.get('/', async function (req, res) {
                      ON food_entries.id = food_entries_tags.food_entry_id
                 LEFT JOIN tags
                      ON tags.id = food_entries_tags.tag_id
-                GROUP BY food_entries.id, dateTime, foodName, calories, meal
-  
-  `;
+                WHERE 1 %extraWhere%
+                GROUP BY food_entries.id, dateTime, foodName, calories, meal`;
+
+  let extraWhere = "";
+  const bindings = [];
+
+  // check if the user is searching by food name
+  if (req.query.foodName) {
+    console.log("user is searching for foodname with", req.query.foodName);
+    extraWhere += " AND foodName LIKE ?";
+    bindings.push("%" + req.query.foodName + "%");
+  }
+
+  if (req.query.date) {
+    // we need to find if the user is searching for on, after or before
+    let operator = "=";
+    if (req.query.date_operator == "after") {
+      operator = ">"
+    } else if (req.query.date_operator == "before") {
+      operator = "<"
+    }
+    extraWhere += ` AND DATE(dateTime) ${operator} ?`;
+    bindings.push(req.query.date)
+  }
+
+  if (req.query.tags) {
+    
+    const tags = Array.isArray(req.query.tags) ? req.query.tags : [ req.query.tags ];
+    extraWhere += ` AND tags.id in (?)`;
+
+    const tagIdToSearchFor = tags.map(tagId => parseInt(tagId));
+    const tagCommaDelimitedString = tagIdToSearchFor.join(",")
+    bindings.push(tagCommaDelimitedString)
+
+    // bindings.push(req.query.tags.map(tagId => parseInt(tagId)).join(","));
+  }
+
   // dbConnection.execute will return with an array of two elements:
   // index 0: row data (we want this)
   // index 1: meta data (we don't want)
   // we can use array destructuring to assign elements from an array
   // into a variable by the order of the variable in the array 
   // on the left hand size
-  const [rows] = await dbConnection.execute({
-    sql,
-    nestTables: false
-  });
-  console.log(rows);
+  
+  const finalSql = sql.replace("%extraWhere%", extraWhere);
+  console.log(finalSql, bindings);
+  const [rows] = await dbConnection.execute(finalSql,  bindings);
+
 
   res.render("index", {
-    "foodEntries": rows
+    "foodEntries": rows,
+    "tags": tags,
+    "searchParams": req.query ? {...req.query,
+      'tags': Array.isArray(req.query.tags) ? req.query.tags : [ req.query.tags ]
+    } : {
+      tags:[]
+    }
   })
 });
 
